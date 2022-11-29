@@ -157,7 +157,63 @@ def t8(slice_df):
         """
     return k9(slice_df)
 
+def getyAxis(acc):
+    # Mean for each sensor axis
+    accMean = np.mean(acc, axis=0)
 
+    # Mean normalized by the Euclidean norm of the mean
+    yAxis = accMean / np.linalg.norm(accMean)
+
+    return yAxis.reshape(-1, 1)
+
+def getzAxis(gyro, direction):
+    # Use here the transposed version to have same notation as in matlab code
+    gyro = np.transpose(gyro)
+
+    # Mean for each sensor axis
+    gyroMean = np.mean(gyro, axis=1)
+
+    # Mean free signal for each sensor axis
+    gyroMeanFree = gyro - gyroMean[:, None]
+
+    # SVD
+    u, _, _ = np.linalg.svd(gyroMeanFree)
+
+    # First eigenvector is approximately parallel to the axis of rotation
+    zAxis = u[:, 0]
+
+    # Project all samples on zAxis to estimate total angle
+    theta = np.sum(np.transpose(gyro) @ zAxis)
+
+    # Correct sign of zAxis
+    zAxis = zAxis * np.sign(theta) * np.sign(direction)
+
+    return zAxis.reshape(-1, 1)
+
+def wahba(v1, v2, w1, w2):
+    """This function implements Wahba's problem for n = 2 and a_i = 1.
+    See https://en.wikipedia.org/wiki/Wahba%27s_problem
+    """
+
+    # Obtain matrix B
+    B = w1 @ np.transpose(v1) + w2 @ np.transpose(v2)
+
+    # Perform SVD
+    U, S, V_transposed = np.linalg.svd(B)
+
+    # Compute rotation
+    M = np.diag([1, 1, np.linalg.det(U) * np.linalg.det(V_transposed)])
+    R = U @ M @ V_transposed
+
+    return R
+
+# yAxisSen = getyAxis(acc[400:800].values)
+# zAxisSen = getzAxis(gyro[9000:9380].values, 1)
+# yAxisSeg = np.array([[0], [1], [0]])
+# zAxisSeg = np.array([[0], [0], [1]])
+# R = wahba(yAxisSen, zAxisSen, yAxisSeg, zAxisSeg)
+# acc_rot = acc.values @ R.T
+# gyr_rot = gyro.values @ R.T
 
 
 

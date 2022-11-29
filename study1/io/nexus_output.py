@@ -21,12 +21,12 @@ def get_force_imu_data(filepath, fs_imu=2000):
     fs_force = int(len(force_df)/(df[df['Frame']=='Frame'].index[0]-4)*fs_imu) # number of frames force/number of frames IMU * fs IMU (2000 Hz)
 
     # get imu data
-    imu_data = df.iloc[1:df[df['Frame'] == 'Devices'].index[0], :].astype('float')
+    imu_df = df.iloc[1:df[df['Frame'] == 'Devices'].index[0], :].astype('float')
     if fs_force != fs_imu:
-        imu_data = imu_data[::fs_imu//fs_force]
-    imu_data.reset_index(inplace=False)
+        imu_data = imu_df[::fs_imu//fs_force]
+    imu_df.reset_index(inplace=False)
 
-    return force_df, fs_force, imu_data, fs_imu
+    return force_df, fs_force, imu_df, fs_imu
 
 
 

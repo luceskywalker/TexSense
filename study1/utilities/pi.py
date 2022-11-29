@@ -171,6 +171,7 @@ def pi_get_fpa(pi_steps, sensor_size):
         # init arrays for F, A
         f = np.empty(pi_steps[key].shape[2])
         a = np.empty(pi_steps[key].shape[2])
+        p = np.empty(pi_steps[key].shape[2])
 
         # calculate parameters for each frame
         for frame in range(pi_steps[key].shape[2]):
@@ -181,6 +182,7 @@ def pi_get_fpa(pi_steps, sensor_size):
             # pressure = F/A when A=!0
             if a[frame] == 0:
                 p[frame] = 0
+                f[frame] = 0
             else:
                 p[frame] = f[frame] / a[frame]
 
@@ -248,3 +250,23 @@ def foot_segmentation(pressure_sp):
               'RF_Lat': rfl}
 
     return slices
+
+def find_hop(events_dict):
+    """
+    finds hop (2 contacts of the same side) for syncing PI
+    :param events_dict: dict with indices for IC & TO events
+    :return: string 'IC_left'/'IC_right', index of first Hop in that array
+    """
+    if events_dict['IC_left'][0]<events_dict['IC_right'][0]:
+        first = 'IC_left'
+        second = 'IC_right'
+    else:
+        first = 'IC_right'
+        second = 'IC_left'
+    for i in range(20):
+        if events_dict[first][i+1] < events_dict[second][i]:
+            print('found hop at ' + str(i) + '. step '+ first[3:] + ' - index:' + str(events_dict[first][i]))
+            return events_dict[first][i]
+        elif events_dict[second][i] < events_dict[first][i]:
+            print('found hop at ' + str(i) + '. step '+ second[3:] + ' - index: ' + str(events_dict[second][i]))
+            return second, i

@@ -1,0 +1,90 @@
+import matplotlib.pyplot as plt
+import seaborn as sns
+import numpy as np
+
+#sns.set()
+def force_events(force_left, force_right, pi_events):
+    """
+
+    :param force_left: Normal force over whole gait trial
+    :param force_right: Normal force over whole gait trial
+    :param pi_events: dict with all IC & TO Indices
+    :return:
+    """
+    plt.plot(force_left, color = 'orange')
+    plt.plot(pi_events['IC_left'], force_left[pi_events['IC_left']], 'o', color = 'red')
+    plt.plot(pi_events['TO_left'], force_left[pi_events['TO_left']], 'x', color='red')
+    plt.plot(force_right, color = 'blue')
+    plt.plot(pi_events['IC_right'], force_right[pi_events['IC_right']], 'o', color = 'k')
+    plt.plot(pi_events['TO_right'], force_right[pi_events['TO_right']], 'x', color='k')
+    plt.show()
+
+    return
+
+def mean_fpa(fpa_df):
+    """
+    plots mean Force, Pressure, Contact Area over all steps
+    :param fpa_df: Multi-index DF with resampled Force, Pressure and Area data
+    :return:
+    """
+    f = fpa_df['Force']
+    f_left = f[f.columns[f.columns.str.contains(pat='left')]]
+    f_right = f[f.columns[f.columns.str.contains(pat='right')]]
+    a = fpa_df['Area']
+    a_left = a[f.columns[a.columns.str.contains(pat='left')]]
+    a_right = a[a.columns[a.columns.str.contains(pat='right')]]
+    p = fpa_df['Pressure']
+    p_left = p[p.columns[p.columns.str.contains(pat='left')]]
+    p_right = p[p.columns[p.columns.str.contains(pat='right')]]
+
+    fig, axs = plt.subplots(1,3, constrained_layout = True)
+    x = len(fpa_df)
+    axs[0].fill_between(x, np.mean(f_left, axis = 1)+np.std(f_left, axis = 1),
+                        np.mean(f_left, axis = 1)-np.std(f_left, axis = 1), label='Left')
+    axs[0].fill_between(x, np.mean(f_right, axis = 1)+np.std(f_right, axis = 1),
+                        np.mean(f_right, axis = 1)-np.std(f_right, axis = 1), label='Right')
+    axs[1].fill_between(x, np.mean(p_left, axis=1) + np.std(p_left, axis=1),
+                        np.mean(p_left, axis=1) - np.std(p_left, axis=1), label='Left')
+    axs[1].fill_between(x, np.mean(p_right, axis=1) + np.std(p_right, axis=1),
+                        np.mean(p_right, axis=1) - np.std(p_right, axis=1), label='Right')
+    axs[2].fill_between(x, np.mean(a_left, axis=1) + np.std(a_left, axis=1),
+                        np.mean(a_left, axis=1) - np.std(a_left, axis=1), label='Left')
+    axs[2].fill_between(x, np.mean(a_right, axis=1) + np.std(a_right, axis=1),
+                        np.mean(a_right, axis=1) - np.std(a_right, axis=1), label='Right')
+    plt.show()
+
+    return
+
+### Animation
+fig, ax = plt.subplots()
+ims=[]
+for i in range(stop_right[11]-start_right[11]):
+    im=ax.imshow(right_data[:,:,start_right[11]+i], animated=True, cmap='jet', interpolation='nearest')
+    if i==0:
+        ax.imshow(right_data[:,:,start_right[11]], cmap='jet', interpolation='nearest')
+    ims.append([im])
+
+ani=animation.ArtistAnimation(fig, ims, interval=26.6, blit=True, repeat_delay=10)
+plt.show()
+
+f = r"C:\Users\b1090197\Documents\Python\Untitled Folder\step_cycle.gif"
+writergif = animation.PillowWriter(fps=26.6)
+ani.save(f, writer=writergif)
+
+### Plot Segment Lines
+plt.imshow(np.mean(right_mp, axis=2), cmap='jet', interpolation='nearest')
+plt.vlines(6, -0.5, 30.5, colors='r')
+plt.hlines([11,21], -0.5, 10.5, colors='r')
+
+### Plots mean pressure in Segments
+for i in slices_right.keys():
+    plt.plot(np.mean(mean_pressure(slices_right[i]).values, axis=1) , label=i)
+    plt.legend()
+    plt.rcParams["figure.figsize"] = (8,6)
+    plt.xlim(0,100)
+    plt.ylim(0,22)
+    plt.title('mittlerer Druckverlauf der Segmente')
+    plt.xlabel('Stance [%]')
+    plt.ylabel('Pressure [N/cm²]')
+
+

@@ -266,7 +266,7 @@ def find_hop(events_dict):
     for i in range(20):
         if events_dict[first][i+1] < events_dict[second][i]:
             print('found hop at ' + str(i) + '. step '+ first[3:] + ' - index:' + str(events_dict[first][i]))
-            return events_dict[first][i]
+            return first, i
         elif events_dict[second][i] < events_dict[first][i]:
             print('found hop at ' + str(i) + '. step '+ second[3:] + ' - index: ' + str(events_dict[second][i]))
             return second, i

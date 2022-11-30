@@ -73,6 +73,7 @@ def pi_to(force_side, IC_side):
         TO_side.extend(np.argwhere(force_side[IC+1:] == 0)[0] + IC+1)
     return TO_side
 
+
 def pi_temporal_parameters(pi_events_dict, sampling_rate_pi):
     """
     calculates Ground Contact Time, Flight Time, Stride Time
@@ -80,37 +81,25 @@ def pi_temporal_parameters(pi_events_dict, sampling_rate_pi):
     :param sampling_rate_pi: sampling rate fs
     :return temp_params_df: df with GCT, Flight T., Stride T., Side for all Steps
     """
-    side = []
-    gct = []
-    st = []
-    ft_left_off = []
-    ft_right_off = []
-    ft = []
 
-    st_left = np.diff(pi_events_dict['IC_left']/sampling_rate_pi, n=1)
-    st_right = np.diff(pi_events_dict['IC_right']/sampling_rate_pi, n=1)
-    gct_left = (pi_events_dict['TO_left']-pi_events_dict['IC_left'])/sampling_rate_pi
-    gct_right = (pi_events_dict['TO_right']-pi_events_dict['IC_right'])/sampling_rate_pi
+    st_left = np.diff(pi_events_dict['IC_left'] / sampling_rate_pi, n=1)
+    st_right = np.diff(pi_events_dict['IC_right'] / sampling_rate_pi, n=1)
+    gct_left = (pi_events_dict['TO_left'] - pi_events_dict['IC_left']) / sampling_rate_pi
+    gct_right = (pi_events_dict['TO_right'] - pi_events_dict['IC_right']) / sampling_rate_pi
 
-    # 1st step left or right?
-    if pi_events_dict['IC_left'][0] < pi_events_dict['IC_right'][0]:
-        order = ['left', 'right']
-        # TODO: somehow not working yet...
-        for i in range(len(pi_events_dict['TO_left'])-1):
-            ft_left_off.append((pi_events_dict['IC_right'][i]-pi_events_dict['TO_left'][i]) / sampling_rate_pi)
-        for i in range(len(pi_events_dict['TO_right'])):
-            ft_right_off.append((pi_events_dict['IC_left'][i+1] - pi_events_dict['TO_right'][i]) / sampling_rate_pi)
+    IC_all = np.sort(np.concatenate([pi_events_dict['IC_right'], pi_events_dict['IC_left']]))[1:]
+    TO_all = np.sort(np.concatenate([pi_events_dict['TO_right'], pi_events_dict['TO_left']]))[:-1]
+    ft = (IC_all - TO_all) / 100
+    if pi_events_dict['IC_right'][0] < pi_events_dict['IC_left'][0]:
+        ft_right_off = (IC_all - TO_all)[::2] / 100
+        ft_left_off = (IC_all - TO_all)[1::2] / 100
+    else:
+        ft_left_off = (IC_all - TO_all)[::2] / 100
+        ft_right_off = (IC_all - TO_all)[1::2] / 100
 
+    cols = [np.repeat(['Stride Time [s]', 'Stance Time [s]', 'Flight Time [s]'], 2), np.tile(['left', 'right'], 3)]
 
-          #  ft_right_off.append((pi_events_dict['IC_left'][i+1]-pi_events_dict['TO_right'][i])/sampling_rate_pi)
-          #  ft.append((pi_events_dict['IC_right'][i]-pi_events_dict['TO_left'][i])/sampling_rate_pi)
-          #  ft.append((pi_events_dict['IC_right'][i] - pi_events_dict['TO_left'][i])/sampling_rate_pi)
-
-  #  else:
-     #   None
-
-    IC_left = pi_events_dict['IC_left']
-    temp_params_df = None
+    temp_params_df = pd.DataFrame([st_left, st_right, gct_left, gct_right, ft_left_off, ft_right_off], index=cols).T
     return temp_params_df
 
 def pi_separate_steps(pi_left, pi_right, pi_events):

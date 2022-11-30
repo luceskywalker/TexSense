@@ -259,3 +259,6 @@ def find_hop(events_dict):
         elif events_dict[second][i] < events_dict[first][i]:
             print('found hop at ' + str(i) + '. step '+ second[3:] + ' - index: ' + str(events_dict[second][i]))
             return second, i
+
+    print('No hop found in first 20 steps..')
+    return

@@ -79,7 +79,7 @@ def pi_temporal_parameters(pi_events_dict, sampling_rate_pi):
     calculates Ground Contact Time, Flight Time, Stride Time
     :param pi_events_dict: Dict containing all IC and TO events
     :param sampling_rate_pi: sampling rate fs
-    :return temp_params_df: df with GCT, Flight T., Stride T., Side for all Steps
+    :return temp_params_df: Multiindex df with GCT, Flight T., Stride T., Side for all Steps
     """
 
     st_left = np.diff(pi_events_dict['IC_left'] / sampling_rate_pi, n=1)
@@ -91,11 +91,11 @@ def pi_temporal_parameters(pi_events_dict, sampling_rate_pi):
     TO_all = np.sort(np.concatenate([pi_events_dict['TO_right'], pi_events_dict['TO_left']]))[:-1]
     ft = (IC_all - TO_all) / 100
     if pi_events_dict['IC_right'][0] < pi_events_dict['IC_left'][0]:
-        ft_right_off = (IC_all - TO_all)[::2] / 100
-        ft_left_off = (IC_all - TO_all)[1::2] / 100
+        ft_right_off = (IC_all - TO_all)[::2] / sampling_rate_pi
+        ft_left_off = (IC_all - TO_all)[1::2] / sampling_rate_pi
     else:
-        ft_left_off = (IC_all - TO_all)[::2] / 100
-        ft_right_off = (IC_all - TO_all)[1::2] / 100
+        ft_left_off = (IC_all - TO_all)[::2] / sampling_rate_pi
+        ft_right_off = (IC_all - TO_all)[1::2] / sampling_rate_pi
 
     cols = [np.repeat(['Stride Time [s]', 'Stance Time [s]', 'Flight Time [s]'], 2), np.tile(['left', 'right'], 3)]
 

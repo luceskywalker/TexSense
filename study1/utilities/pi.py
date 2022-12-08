@@ -23,8 +23,69 @@ def pi_reshape(side_df):
         side_array[:, :, i - 1] = side_df.loc[side_df['frame'] == i, '0':'10'].values
     return side_array
 
+def pi_remove_offset(array3_raw, fs):
+    """
+    removes pressure offset during swing
+    :param array3_raw: 3D array with pressure data from 1 side (31 x 11 x frames)
+    :param fs: sampling rate - int
+    :return: offset removed pressure data
+    """
+    # calculate force
+    force = pi_force(array3_raw)
+    # calculate IC
+    ic = pi_ic(force, fs)
+
+    array3 = np.empty(array3_raw.shape)
+    # for every ic: find largest offset frame in previous 0.25 s
+    # substract this offset from all frames between current and previous IC
+    for i in range(len(ic)):
+        if i == 0:
+            array3[:, :, :ic[i]] = offset_stage1(array3_raw[:, :, :ic[i]], fs)
+        else:
+            array3[:, :, ic[i - 1]:ic[i]] = offset_stage1(array3_raw[:, :, ic[i - 1]:ic[i]], fs)
+
+    return array3
+
 def pi_force(array3):
     return np.sum(np.sum(array3, axis=0), axis=0)
+
+def pi_ic(force_side, sampling_rate):
+
+    # calculate rate of force development (1st derivative of force)
+    rfd = np.diff(force_side, n=1)*sampling_rate   # unit N/s
+
+    # find where rfd > 1500 N/s based on Seiberl et al. (2018)
+    rfd_1500 = list(np.where(rfd > 1500)[0])
+    IC_side = []
+
+    # loop over all indices of rfd_1500
+    for IC in rfd_1500:
+        # check if force increases monotonically by at least 1000 N in next 0.05s
+        # TODO: needs to be checked
+        while IC < len(force_side)-sampling_rate//20:
+            if ((force_side[IC+sampling_rate//20]) > (force_side[IC]+1000)) & (min(force_side[IC:IC+sampling_rate//20]) == force_side[IC:IC+sampling_rate//20][0]):
+                # first ic
+                if len(IC_side) == 0:
+                    IC_side.append(IC)
+                # all further ic have to be at least 0.25s apart
+                elif IC > IC_side[-1]+sampling_rate//4:
+                    IC_side.append(IC)
+
+    return np.array(IC_side, dtype=int)
+
+def find_max_offset(array3, fs):
+    offset = array3[:, :, -fs//4]
+    for frame in range(-fs//4,-1):
+        if np.sum(offset)<np.sum(array3[:,:,frame]):
+            offset = array3[:,:,frame]
+    return offset
+
+def offset_stage1(array3, fs):
+    offset = find_max_offset(array3, fs)
+    for frame in range(array3.shape[2]):
+        array3[:,:,frame]-=offset
+    array3[array3<0]=0
+    return array3
 
 def pi_step_segmentation(force_left, force_right, sampling_rate_pi):
     """
@@ -37,42 +98,48 @@ def pi_step_segmentation(force_left, force_right, sampling_rate_pi):
     IC_right = pi_ic(force_right, sampling_rate_pi)
     TO_left = pi_to(force_left, IC_left)
     TO_right = pi_to(force_right, IC_right)
-    events_dict = {'IC_left': np.array(IC_left[:-1]),
-              'IC_right': np.array(IC_right[:-1]),
-              'TO_left': np.array(TO_left),
-              'TO_right': np.array(TO_right)
+    events_dict = {'IC_left': IC_left[:-1],
+              'IC_right': IC_right[:-1],
+              'TO_left': TO_left,
+              'TO_right': TO_right
     }
     return events_dict
 
-def pi_ic(force_side, sampling_rate):
-    # calculate rate of force development (1st derivative of force)
-    rfd = np.diff(force_side, n=1)*sampling_rate   # unit N/s
-
-    # find where rfd > 1500 N/s based on Seiberl et al. (2018)
-    rfd_1500 = np.where(rfd > 1500)[0]
-
-    # first IC is when rfd first exceeds 1500 N/s
-    IC_side = [rfd_1500[0]]
-
-    # next IC of the same side has to be at least 250 ms away (fs/4)
-    for i in range(1, len(rfd_1500)):
-        if rfd_1500[i] - rfd_1500[i - 1] > sampling_rate / 4:
-            IC_side.append(rfd_1500[i])
-    IC_side=np.array(IC_side, dtype=int)
-    return IC_side
-
-def pi_to(force_side, IC_side):
+def pi_to(force_side, IC_side, fs):
     # filter force data (below 20 N threshold --> 0)
     force_side[force_side < 20] = 0
     TO_side=[]
 
     # loop to find Toe Off after respective IC
-    # force = 0 for the first time after IC
+    # force = 0 for the first time 0.1 s after IC
     # clip before last IC (there might not be a toe off after)
     for IC in IC_side[:-1]:
-        TO_side.extend(np.argwhere(force_side[IC+1:] == 0)[0] + IC+1)
-    return TO_side
+        pot_to = np.argwhere(force_side[IC+fs//10:] == 0)[0] + IC+fs//10
+        TO_side.extend(pot_to)
+    return np.array(TO_side, dtype=int)
 
+def find_hop(events_dict):
+    """
+    finds hop (2 contacts of the same side) for syncing PI
+    :param events_dict: dict with indices for IC & TO events
+    :return: string 'IC_left'/'IC_right', index of first Hop in that array
+    """
+    if events_dict['IC_left'][0]<events_dict['IC_right'][0]:
+        first = 'IC_left'
+        second = 'IC_right'
+    else:
+        first = 'IC_right'
+        second = 'IC_left'
+    for i in range(20):
+        if events_dict[first][i+1] < events_dict[second][i]:
+            print('found hop at ' + str(i) + '. step '+ first[3:] + ' - index:' + str(events_dict[first][i]))
+            return first, i
+        elif events_dict[second][i] < events_dict[first][i]:
+            print('found hop at ' + str(i) + '. step '+ second[3:] + ' - index: ' + str(events_dict[second][i]))
+            return second, i
+
+    print('No hop found in first 20 steps..')
+    return
 
 def pi_temporal_parameters(pi_events_dict, sampling_rate_pi):
     """
@@ -240,25 +307,3 @@ def foot_segmentation(pressure_sp):
 
     return slices
 
-def find_hop(events_dict):
-    """
-    finds hop (2 contacts of the same side) for syncing PI
-    :param events_dict: dict with indices for IC & TO events
-    :return: string 'IC_left'/'IC_right', index of first Hop in that array
-    """
-    if events_dict['IC_left'][0]<events_dict['IC_right'][0]:
-        first = 'IC_left'
-        second = 'IC_right'
-    else:
-        first = 'IC_right'
-        second = 'IC_left'
-    for i in range(20):
-        if events_dict[first][i+1] < events_dict[second][i]:
-            print('found hop at ' + str(i) + '. step '+ first[3:] + ' - index:' + str(events_dict[first][i]))
-            return first, i
-        elif events_dict[second][i] < events_dict[first][i]:
-            print('found hop at ' + str(i) + '. step '+ second[3:] + ' - index: ' + str(events_dict[second][i]))
-            return second, i
-
-    print('No hop found in first 20 steps..')
-    return

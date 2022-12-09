@@ -55,21 +55,21 @@ def pi_ic(force_side, sampling_rate):
     rfd = np.diff(force_side, n=1)*sampling_rate   # unit N/s
 
     # find where rfd > 1500 N/s based on Seiberl et al. (2018)
-    rfd_1500 = list(np.where(rfd > 1500)[0])
+    rfd_1500 = np.where(rfd > 1500)[0]
+    rfd_1500 = list(rfd_1500[rfd_1500<len(force_side)-sampling_rate//20])
     IC_side = []
 
     # loop over all indices of rfd_1500
     for IC in rfd_1500:
         # check if force increases monotonically by at least 1000 N in next 0.05s
         # TODO: needs to be checked
-        while IC < len(force_side)-sampling_rate//20:
-            if ((force_side[IC+sampling_rate//20]) > (force_side[IC]+1000)) & (min(force_side[IC:IC+sampling_rate//20]) == force_side[IC:IC+sampling_rate//20][0]):
-                # first ic
-                if len(IC_side) == 0:
-                    IC_side.append(IC)
-                # all further ic have to be at least 0.25s apart
-                elif IC > IC_side[-1]+sampling_rate//4:
-                    IC_side.append(IC)
+        if ((force_side[IC+sampling_rate//20]) > (force_side[IC]+1000)) & (min(force_side[IC:IC+sampling_rate//20]) == force_side[IC:IC+sampling_rate//20][0]):
+            # first ic
+            if len(IC_side) == 0:
+                IC_side.append(IC)
+            # all further ic have to be at least 0.25s apart
+            elif IC > IC_side[-1]+sampling_rate//4:
+                IC_side.append(IC)
 
     return np.array(IC_side, dtype=int)
 
@@ -96,8 +96,8 @@ def pi_step_segmentation(force_left, force_right, sampling_rate_pi):
     """
     IC_left = pi_ic(force_left, sampling_rate_pi)
     IC_right = pi_ic(force_right, sampling_rate_pi)
-    TO_left = pi_to(force_left, IC_left)
-    TO_right = pi_to(force_right, IC_right)
+    TO_left = pi_to(force_left, IC_left, sampling_rate_pi)
+    TO_right = pi_to(force_right, IC_right, sampling_rate_pi)
     events_dict = {'IC_left': IC_left[:-1],
               'IC_right': IC_right[:-1],
               'TO_left': TO_left,
@@ -106,8 +106,8 @@ def pi_step_segmentation(force_left, force_right, sampling_rate_pi):
     return events_dict
 
 def pi_to(force_side, IC_side, fs):
-    # filter force data (below 20 N threshold --> 0)
-    force_side[force_side < 20] = 0
+    # filter force data (below 50 N threshold --> 0)
+    force_side[force_side < 50] = 0
     TO_side=[]
 
     # loop to find Toe Off after respective IC

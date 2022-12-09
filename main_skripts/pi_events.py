@@ -29,7 +29,7 @@ for trial in conditions:
     print(pi.find_hop(events_dict))
     # temporal parameters
     temp_params_df = pi.pi_temporal_parameters(events_dict, fs)
-    print(temp_params_df['Stance Time [s]]'])
+    print(temp_params_df[temp_params_df.columns[2:4]])
     temp_params_df.to_csv(participant_path+'\\temp_params_' + current + '.csv', index=False)
 
     # separate steps into dict

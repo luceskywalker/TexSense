@@ -74,10 +74,19 @@ def pi_ic(force_side, sampling_rate):
     return np.array(IC_side, dtype=int)
 
 def find_max_offset(array3, fs):
-    offset = array3[:, :, -fs//4]
-    for frame in range(-fs//4,-1):
-        if np.sum(offset)<np.sum(array3[:,:,frame]):
-            offset = array3[:,:,frame]
+    if array3.shape[2] < fs//4:
+        if len(array3.shape)==2:
+            offset = array3
+        else:
+            offset = array3[:, :, 0]
+            for frame in range(array3.shape[2]):
+                if np.sum(offset)<np.sum(array3[:,:,frame]):
+                    offset = array3[:,:,frame]
+    else:
+        offset = array3[:, :, -fs//4]
+        for frame in range(-fs//4,-1):
+            if np.sum(offset)<np.sum(array3[:,:,frame]):
+                offset = array3[:,:,frame]
     return offset
 
 def offset_stage1(array3, fs):

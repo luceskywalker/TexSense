@@ -30,7 +30,7 @@ for trial in conditions:
     # temporal parameters
     temp_params_df = pi.pi_temporal_parameters(events_dict, fs)
     print(temp_params_df[temp_params_df.columns[2:4]])
-    temp_params_df.to_csv(participant_path+'\\temp_params_' + current + '.csv', index=False)
+    temp_params_df.to_csv(participant_path+'\\output\\temp_params_' + current + '.csv', index=False)
 
     # separate steps into dict
     pi_steps = pi.pi_separate_steps(left, right, events_dict)
@@ -39,5 +39,5 @@ for trial in conditions:
     cop_dict = pi.pi_get_cop(pi_steps)
     fpa_dict = pi.pi_get_fpa(pi_steps, size)
     fpa_df = pi.pi_dict_resample(fpa_dict, 100)
-    fpa_df.to_csv(participant_path+'\\FPA_'+current+'.csv', index = False)
+    fpa_df.to_csv(participant_path+'\\output\\FPA_'+current+'.csv', index = False)
     print('... next')

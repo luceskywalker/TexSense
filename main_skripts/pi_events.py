@@ -4,13 +4,13 @@ from study1.io.conditions import pi_path, load_pi
 import study1.utilities.pi as pi
 import study1.plot.pi_plots as piplot
 
-participant_path = 'D:\\Salzburg\\Study1\\P01\\P01_PI_df'
+participant_path = 'D:\\Salzburg\\Study1\\P02\\P02_PI_df'
 conditions = pi_path(participant_path)
 fs = 100
 size = 0.82**2
 
 for trial in conditions:
-    #trial = 'D:\\Salzburg\\Study1\\P01\\P01_PI_df\\UB_OG_8.csv'
+    #trial = 'D:\\Salzburg\\Study1\\P01\\P01_PI_df\\BOS_down_8.csv'
     df = load_pi(trial)
     current = trial.split('\\')[-1][:-4]
     print(current)
@@ -41,7 +41,7 @@ for trial in conditions:
     pi_steps = pi.pi_separate_steps(left, right, events_dict)
 
     # COP, Force, Pressure, Area
-    cop_dict = pi.pi_get_cop(pi_steps)
+    #cop_dict = pi.pi_get_cop(pi_steps)
     fpa_dict = pi.pi_get_fpa(pi_steps, size)
     fpa_df = pi.pi_dict_resample(fpa_dict, 100)
     fpa_df.to_csv(participant_path+'\\output\\FPA_'+current+'.csv', index = False)

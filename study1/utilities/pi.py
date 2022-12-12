@@ -40,7 +40,10 @@ def pi_remove_offset(array3_raw, fs):
     # substract this offset from all frames between current and previous IC
     for i in range(len(ic)):
         if i == 0:
-            array3[:, :, :ic[i]] = offset_stage1(array3_raw[:, :, :ic[i]], fs)
+            if ic[i]==0:
+                continue
+            else:
+                array3[:, :, :ic[i]] = offset_stage1(array3_raw[:, :, :ic[i]], fs)
         else:
             array3[:, :, ic[i - 1]:ic[i]] = offset_stage1(array3_raw[:, :, ic[i - 1]:ic[i]], fs)
 
@@ -75,13 +78,10 @@ def pi_ic(force_side, sampling_rate):
 
 def find_max_offset(array3, fs):
     if array3.shape[2] < fs//4:
-        if len(array3.shape)==2:
-            offset = array3
-        else:
-            offset = array3[:, :, 0]
-            for frame in range(array3.shape[2]):
-                if np.sum(offset)<np.sum(array3[:,:,frame]):
-                    offset = array3[:,:,frame]
+        offset = array3[:, :, 0]
+        for frame in range(array3.shape[2]):
+            if np.sum(offset)<np.sum(array3[:,:,frame]):
+                offset = array3[:,:,frame]
     else:
         offset = array3[:, :, -fs//4]
         for frame in range(-fs//4,-1):

@@ -9,6 +9,7 @@ fs = 100
 size = 0.82**2
 
 for trial in conditions:
+    #trial = 'D:\\Salzburg\\Study1\\P01\\P01_PI_df\\UB_OG_8.csv'
     df = load_pi(trial)
     current = trial.split('\\')[-1][:-4]
     print(current)
@@ -26,7 +27,8 @@ for trial in conditions:
     # TODO: add plots
     # events
     events_dict = pi.pi_step_segmentation(force_left, force_right, fs)
-    print(pi.find_hop(events_dict))
+    if current.split('_')[1] != 'OG':
+        print(pi.find_hop(events_dict))
     # temporal parameters
     temp_params_df = pi.pi_temporal_parameters(events_dict, fs)
     print(temp_params_df[temp_params_df.columns[2:4]])

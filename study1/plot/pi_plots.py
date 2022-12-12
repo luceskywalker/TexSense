@@ -3,21 +3,41 @@ import seaborn as sns
 import numpy as np
 
 #sns.set()
-def force_events(force_left, force_right, pi_events):
+def force_events(trial, force_left, force_right, pi_events, save = True):
     """
 
-    :param force_left: Normal force over whole gait trial
-    :param force_right: Normal force over whole gait trial
+    :param current: string with current trial
+    :param force_left: Normal force over whole trial
+    :param force_right: Normal force over whole trial
     :param pi_events: dict with all IC & TO Indices
+    :param save: Bool for saving (default = True)
     :return:
     """
-    plt.plot(force_left, color = 'orange')
-    plt.plot(pi_events['IC_left'], force_left[pi_events['IC_left']], 'o', color = 'red')
-    plt.plot(pi_events['TO_left'], force_left[pi_events['TO_left']], 'x', color='red')
-    plt.plot(force_right, color = 'blue')
-    plt.plot(pi_events['IC_right'], force_right[pi_events['IC_right']], 'o', color = 'k')
-    plt.plot(pi_events['TO_right'], force_right[pi_events['TO_right']], 'x', color='k')
-    plt.show()
+    current = trial.split('\\')[-1][:-4]
+    fig = plt.figure(figsize=(32, 14))
+    plt.plot(force_left, label='left')
+    plt.plot(force_right, label='right')
+    plt.plot(pi_events['IC_right'], force_right[pi_events['IC_right']], 'rx')
+    plt.plot(pi_events['TO_right'], force_right[pi_events['TO_right']], 'ro')
+    plt.plot(pi_events['IC_left'], force_left[pi_events['IC_left']], 'bx')
+    plt.plot(pi_events['TO_left'], force_left[pi_events['TO_left']], 'bo')
+    plt.rc('font', size=16)  # fontsize of the axes title
+    plt.legend()
+    plt.ylabel('Normal Force [N]')
+    plt.xlabel('Time [ms]')
+    # plt.tight_layout()
+    fig.suptitle(current, fontsize=30, y=.92)
+    if save == True:
+        if current.split('_')[1] != 'OG':
+            plt.xlim(0, 2000)
+            plt.savefig(trial[:-4] + '-1.jpg', bbox_inches='tight', dpi = 60)
+            plt.xlim(2000, 4000)
+            plt.savefig(trial[:-4] + '-2.jpg', bbox_inches='tight', dpi = 60)
+            plt.xlim(4000, 6000)
+            plt.savefig(trial[:-4] + '-3.jpg', bbox_inches='tight', dpi = 60)
+        else:
+            plt.savefig(trial[:-4] + '.jpg', bbox_inches='tight', dpi = 60)
+    plt.close(fig)
 
     return
 
@@ -55,36 +75,36 @@ def mean_fpa(fpa_df):
 
     return
 
-### Animation
-fig, ax = plt.subplots()
-ims=[]
-for i in range(stop_right[11]-start_right[11]):
-    im=ax.imshow(right_data[:,:,start_right[11]+i], animated=True, cmap='jet', interpolation='nearest')
-    if i==0:
-        ax.imshow(right_data[:,:,start_right[11]], cmap='jet', interpolation='nearest')
-    ims.append([im])
-
-ani=animation.ArtistAnimation(fig, ims, interval=26.6, blit=True, repeat_delay=10)
-plt.show()
-
-f = r"C:\Users\b1090197\Documents\Python\Untitled Folder\step_cycle.gif"
-writergif = animation.PillowWriter(fps=26.6)
-ani.save(f, writer=writergif)
-
-### Plot Segment Lines
-plt.imshow(np.mean(right_mp, axis=2), cmap='jet', interpolation='nearest')
-plt.vlines(6, -0.5, 30.5, colors='r')
-plt.hlines([11,21], -0.5, 10.5, colors='r')
-
-### Plots mean pressure in Segments
-for i in slices_right.keys():
-    plt.plot(np.mean(mean_pressure(slices_right[i]).values, axis=1) , label=i)
-    plt.legend()
-    plt.rcParams["figure.figsize"] = (8,6)
-    plt.xlim(0,100)
-    plt.ylim(0,22)
-    plt.title('mittlerer Druckverlauf der Segmente')
-    plt.xlabel('Stance [%]')
-    plt.ylabel('Pressure [N/cm²]')
+# ### Animation
+# fig, ax = plt.subplots()
+# ims=[]
+# for i in range(stop_right[11]-start_right[11]):
+#     im=ax.imshow(right_data[:,:,start_right[11]+i], animated=True, cmap='jet', interpolation='nearest')
+#     if i==0:
+#         ax.imshow(right_data[:,:,start_right[11]], cmap='jet', interpolation='nearest')
+#     ims.append([im])
+#
+# ani=animation.ArtistAnimation(fig, ims, interval=26.6, blit=True, repeat_delay=10)
+# plt.show()
+#
+# f = r"C:\Users\b1090197\Documents\Python\Untitled Folder\step_cycle.gif"
+# writergif = animation.PillowWriter(fps=26.6)
+# ani.save(f, writer=writergif)
+#
+# ### Plot Segment Lines
+# plt.imshow(np.mean(right_mp, axis=2), cmap='jet', interpolation='nearest')
+# plt.vlines(6, -0.5, 30.5, colors='r')
+# plt.hlines([11,21], -0.5, 10.5, colors='r')
+#
+# ### Plots mean pressure in Segments
+# for i in slices_right.keys():
+#     plt.plot(np.mean(mean_pressure(slices_right[i]).values, axis=1) , label=i)
+#     plt.legend()
+#     plt.rcParams["figure.figsize"] = (8,6)
+#     plt.xlim(0,100)
+#     plt.ylim(0,22)
+#     plt.title('mittlerer Druckverlauf der Segmente')
+#     plt.xlabel('Stance [%]')
+#     plt.ylabel('Pressure [N/cm²]')
 
 

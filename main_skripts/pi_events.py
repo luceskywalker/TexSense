@@ -2,6 +2,7 @@ import pandas as pd
 import numpy as np
 from study1.io.conditions import pi_path, load_pi
 import study1.utilities.pi as pi
+import study1.plot.pi_plots as piplot
 
 participant_path = 'D:\\Salzburg\\Study1\\P01\\P01_PI_df'
 conditions = pi_path(participant_path)
@@ -24,11 +25,13 @@ for trial in conditions:
     force_left = pi.pi_force(left)
     force_right = pi.pi_force(right)
 
-    # TODO: add plots
+
     # events
     events_dict = pi.pi_step_segmentation(force_left, force_right, fs)
     if current.split('_')[1] != 'OG':
         print(pi.find_hop(events_dict))
+    piplot.force_events(trial, force_left, force_right, events_dict, save=True)
+
     # temporal parameters
     temp_params_df = pi.pi_temporal_parameters(events_dict, fs)
     print(temp_params_df[temp_params_df.columns[2:4]])

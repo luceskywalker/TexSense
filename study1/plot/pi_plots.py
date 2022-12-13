@@ -3,7 +3,7 @@ import seaborn as sns
 import numpy as np
 
 #sns.set()
-def force_events(trial, force_left, force_right, pi_events, save = True):
+def events(trial, force_left, force_right, pi_events, save = True):
     """
 
     :param current: string with current trial
@@ -37,6 +37,50 @@ def force_events(trial, force_left, force_right, pi_events, save = True):
             plt.savefig(trial[:-4] + '-3.jpg', bbox_inches='tight', dpi = 60)
         else:
             plt.savefig(trial[:-4] + '.jpg', bbox_inches='tight', dpi = 60)
+    plt.close(fig)
+
+    return
+
+def force_events(trial, force, ic, to, force_left, force_right, pi_events, save = True):
+    """
+
+    :param current: string with current trial
+    :param force_left: Normal force over whole trial
+    :param force_right: Normal force over whole trial
+    :param pi_events: dict with all IC & TO Indices
+    :param save: Bool for saving (default = True)
+    :return:
+    """
+    current = trial.split('\\')[-1][:-4]
+    fig = plt.figure(figsize=(32, 14))
+
+    plt.plot(force_left, label='left', linewidth=3)
+    plt.plot(force_right, label='right', linewidth=3)
+    plt.plot(pi_events['IC_right'], force_right[pi_events['IC_right']], 'rX', markersize=15)
+    plt.plot(pi_events['TO_right'], force_right[pi_events['TO_right']], 'ro', markersize=10)
+    plt.plot(pi_events['IC_left'], force_left[pi_events['IC_left']], 'bX', markersize=15)
+    plt.plot(pi_events['TO_left'], force_left[pi_events['TO_left']], 'bo', markersize=10)
+
+    plt.plot(force, 'k--', label = 'Fvert', linewidth=2)
+    plt.plot(ic, force[ic], 'kX', markersize=15)
+    plt.plot(to, force[to], 'ko', markersize=10)
+
+    plt.rc('font', size=20)  # fontsize of the axes title
+    plt.legend()
+    plt.ylabel('Force [N]')
+    plt.xlabel('Time [ms]')
+    # plt.tight_layout()
+    fig.suptitle(current, fontsize=30, y=.92)
+    if save == True:
+        if current.split('_')[1] != 'OG':
+            plt.xlim(0, 750)
+            plt.savefig(trial[:-4] + '_force-1.jpg', bbox_inches='tight') #, dpi = 60)
+            #plt.xlim(2000, 4000)
+            #plt.savefig(trial[:-4] + '_force-2.jpg', bbox_inches='tight', dpi = 60)
+            #plt.xlim(4000, 6000)
+            #plt.savefig(trial[:-4] + '_force-3.jpg', bbox_inches='tight', dpi = 60)
+        else:
+            plt.savefig(trial[:-4] + '_force.jpg', bbox_inches='tight', dpi = 60)
     plt.close(fig)
 
     return

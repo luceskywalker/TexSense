@@ -56,7 +56,7 @@ events_dict['IC_left'] = events_dict['IC_left'] - pi_delay
 events_dict['TO_left'] = events_dict['TO_left'] - pi_delay
 
 # plot
-piplot.force_events(trial, force, ic_true, to_true, force_left, force_right, events_dict, save=True)
-
+#piplot.force_events(trial, force, ic_true, to_true, force_left, force_right, events_dict, save=True)
+piplot.events(trial, force_left, force_right, events_dict)
 
 print('... next')

@@ -15,12 +15,13 @@ def events(trial, force_left, force_right, pi_events, save = True):
     """
     current = trial.split('\\')[-1][:-4]
     fig = plt.figure(figsize=(32, 14))
-    plt.plot(force_left, label='left')
-    plt.plot(force_right, label='right')
-    plt.plot(pi_events['IC_right'], force_right[pi_events['IC_right']], 'rx')
-    plt.plot(pi_events['TO_right'], force_right[pi_events['TO_right']], 'ro')
-    plt.plot(pi_events['IC_left'], force_left[pi_events['IC_left']], 'bx')
-    plt.plot(pi_events['TO_left'], force_left[pi_events['TO_left']], 'bo')
+    plt.plot(force_left, label='left', linewidth=3)
+    plt.plot(force_right, label='right', linewidth=3)
+    plt.plot(pi_events['IC_right'], force_right[pi_events['IC_right']], 'rX', markersize=15)
+    plt.plot(pi_events['TO_right'], force_right[pi_events['TO_right']], 'ro', markersize=10)
+    plt.plot(pi_events['IC_left'], force_left[pi_events['IC_left']], 'bX', markersize=15)
+    plt.plot(pi_events['TO_left'], force_left[pi_events['TO_left']], 'bo', markersize=10)
+
     plt.rc('font', size=16)  # fontsize of the axes title
     plt.legend()
     plt.ylabel('Normal Force [N]')
@@ -29,7 +30,7 @@ def events(trial, force_left, force_right, pi_events, save = True):
     fig.suptitle(current, fontsize=30, y=.92)
     if save == True:
         if current.split('_')[1] != 'OG':
-            plt.xlim(0, 2000)
+            plt.xlim(0, 750)
             plt.savefig(trial[:-4] + '-1.jpg', bbox_inches='tight', dpi = 60)
             plt.xlim(2000, 4000)
             plt.savefig(trial[:-4] + '-2.jpg', bbox_inches='tight', dpi = 60)

@@ -6,16 +6,18 @@ import study1.plot.pi_plots as piplot
 from study1.io.nexus_output import read_nexus_treadmill_csv
 from study1.utilities.signal import downsample
 from study1.utilities.force import segments_steps
+import matplotlib.pyplot as plt
 
 participant_path = 'D:\\Salzburg\\Study1\\P01\\P01_PI_df'
 conditions = pi_path(participant_path)
 fs = 100
-size = 0.82**2
+
 path_nexus = 'D:\\Salzburg\\Study1\\P01\\P01_treadmill\\20221205_P01_'
 for trial in conditions:
     #trial = 'D:\\Salzburg\\Study1\\P01\\P01_PI_df\\UB_up_8.csv'
     current = trial.split('\\')[-1][:-4]
     print(current)
+    size, p_unit = pi.get_size_units(trial)
 
     if (current.split('_')[1] != 'OG') & (current.split('_')[0] == 'UB'):
         # load pi data
@@ -29,13 +31,19 @@ for trial in conditions:
 
         # separate side
         left_raw, right_raw = pi.separate_sides(df)
+
+        # convert units to N/cm²
+        if p_unit == 'PSI':
+            left_raw *= 0.6894757
+            right_raw *= 0.6894757
+
         # remove offset
-        left = pi.pi_remove_offset(left_raw, fs)
-        right = pi.pi_remove_offset(right_raw, fs)
+        left = pi.pi_remove_offset(left_raw, fs, size)
+        right = pi.pi_remove_offset(right_raw, fs, size)
 
         # force
-        force_left = pi.pi_force(left)
-        force_right = pi.pi_force(right)
+        force_left = pi.pi_force(left, size)
+        force_right = pi.pi_force(right, size)
 
         # events
         events_dict = pi.pi_step_segmentation(force_left, force_right, fs)

@@ -1,5 +1,6 @@
 import numpy as np
 import pandas as pd
+from pathlib import Path
 from scipy import ndimage
 from scipy.signal import resample
 
@@ -23,7 +24,7 @@ def pi_reshape(side_df):
         side_array[:, :, i - 1] = side_df.loc[side_df['frame'] == i, '0':'10'].values
     return side_array
 
-def pi_remove_offset(array3_raw, fs):
+def pi_remove_offset(array3_raw, fs, size):
     """
     removes pressure offset during swing
     :param array3_raw: 3D array with pressure data from 1 side (31 x 11 x frames)
@@ -31,7 +32,7 @@ def pi_remove_offset(array3_raw, fs):
     :return: offset removed pressure data
     """
     # calculate force
-    force = pi_force(array3_raw)
+    force = pi_force(array3_raw, size)
     # calculate IC
     ic = pi_ic(force, fs)
 
@@ -49,8 +50,8 @@ def pi_remove_offset(array3_raw, fs):
 
     return array3
 
-def pi_force(array3):
-    return np.sum(np.sum(array3, axis=0), axis=0)
+def pi_force(array3, size):
+    return np.sum(np.sum(array3, axis=0), axis=0) * size
 
 def pi_ic(force_side, sampling_rate):
 
@@ -317,3 +318,16 @@ def foot_segmentation(pressure_sp):
 
     return slices
 
+def get_size_units(filepath):
+    filepath = Path(filepath)
+    current = filepath.name
+    raw_dir = filepath.parent.name.replace('df', 'raw')
+    raw_path = filepath.parents[1] / raw_dir / current
+
+    # load raw
+    df = pd.read_csv(raw_path, sep=',', header=None, nrows=22)
+    p_unit = df[df[0]=='Units:'].iloc[0,1]
+    size = float(df[df[0]=='Sensel Width (cm)'].iloc[0,1].replace(',','.')) * \
+           float(df[df[0]=='Sensel Height (cm)'].iloc[0,1].replace(',','.'))
+
+    return size, p_unit

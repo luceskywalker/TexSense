@@ -29,8 +29,8 @@ for i in range(len(conditions[conditions['pi_data']==True])):
 
 #   - reshape (by frames)
 #   - calculate force [N]
-    force_left = pi_force(pi_left)
-    force_right = pi_force(pi_right)
+    force_left = pi_force(pi_left, size)
+    force_right = pi_force(pi_right, size)
 
 #   - (calculate rate of force development)
 #   - step segmentation

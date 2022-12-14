@@ -32,10 +32,10 @@ def events(trial, force_left, force_right, pi_events, save = True):
         if current.split('_')[1] != 'OG':
             plt.xlim(0, 750)
             plt.savefig(trial[:-4] + '-1.jpg', bbox_inches='tight', dpi = 60)
-            plt.xlim(2000, 4000)
-            plt.savefig(trial[:-4] + '-2.jpg', bbox_inches='tight', dpi = 60)
-            plt.xlim(4000, 6000)
-            plt.savefig(trial[:-4] + '-3.jpg', bbox_inches='tight', dpi = 60)
+            # plt.xlim(2000, 4000)
+            # plt.savefig(trial[:-4] + '-2.jpg', bbox_inches='tight', dpi = 60)
+            # plt.xlim(4000, 6000)
+            # plt.savefig(trial[:-4] + '-3.jpg', bbox_inches='tight', dpi = 60)
         else:
             plt.savefig(trial[:-4] + '.jpg', bbox_inches='tight', dpi = 60)
     plt.close(fig)

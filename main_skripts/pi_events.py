@@ -3,7 +3,7 @@ import numpy as np
 from study1.io.conditions import pi_path, load_pi
 import study1.utilities.pi as pi
 import study1.plot.pi_plots as piplot
-from study1.io.nexus_output import read_nexus_csv
+from study1.io.nexus_output import read_nexus_treadmill_csv
 from study1.utilities.signal import downsample
 from study1.utilities.force import segments_steps
 
@@ -23,7 +23,7 @@ for trial in conditions:
 
         # load force data, downsample and calculate true events
         trial_nexus = path_nexus + current + '.csv'
-        nexus_dict = read_nexus_csv(trial_nexus)
+        nexus_dict = read_nexus_treadmill_csv(trial_nexus)
         force_df = downsample(nexus_dict['df_force'], nexus_dict['fs_force'], fs)
         ic_true, to_true = segments_steps(force_df, fs)
 

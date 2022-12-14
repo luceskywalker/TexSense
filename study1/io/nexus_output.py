@@ -1,8 +1,9 @@
 import pandas as pd
 import numpy as np
 
-def read_nexus_csv(filepath):
+def read_nexus_treadmill_csv(filepath):
     """
+    ! Caution ! works only for treadmill output
     reads nexus csv file and imports IMU, Force and Marker Data
     returns dict with Data in DF (float) and Sampling Frequencies (int)
     looks like this:
@@ -12,7 +13,7 @@ def read_nexus_csv(filepath):
             'fs_force': fs_force,
             'df_marker': df_marker,
             'fs_marker': fs_marker
-    :param filepath:
+    :param filepath: Path for Treadmill Trial
     :return following dict:
             'df_imu': regular df
             'fs_imu': int
@@ -58,6 +59,63 @@ def read_nexus_csv(filepath):
 
     return nexus_dict
 
+def read_nexus_overground_csv(filepath):
+    """
+    ! Caution ! works only for Overground output
+    reads nexus csv file and imports IMU, Force and Marker Data
+    returns dict with Data in DF (float) and Sampling Frequencies (int)
+    looks like this:
+            'df_imu': regular df
+            'fs_imu': int
+            'df_force': regular df
+            'fs_force': fs_force,
+            'df_marker': df_marker,
+            'fs_marker': fs_marker
+    :param filepath: Path for OG Trial
+    :return following dict:
+            'df_imu': regular df
+            'fs_imu': int
+            'df_force': regular df
+            'fs_force': int,
+            'df_marker': Multiindex DF (1st level: Marker names, 2nd level ['x', 'y', 'z']),
+            'fs_marker': int
+    """
+    # read file in 1 columns with strings
+    df = pd.read_csv(filepath, sep=';', header=None)
+
+    # get indices of Device Data
+    idx_analog = df[df[0] == 'Devices'].index[0]
+    idx_marker = df[df[0] == 'Trajectories'].index[0]
+
+    # slice string df
+    df_analog = df[idx_analog:idx_marker]
+    df_marker = df[idx_marker:]
+
+    # get sampling rates in Hz
+    fs_imu = int(df_analog.iloc[1])
+    fs_force = fs_imu
+    fs_marker = int(df_marker.iloc[1])
+
+    # reshape Device Data and store in DF
+    df_analog = df_reshape_analog(df_analog)
+    df_force = df_analog.iloc[:,:9]
+    df_imu = df_analog.iloc[:,9:]
+    df_marker = df_reshape_marker(df_marker)
+    # divide by 1000 to convert acc data from mm/s² to m/s²
+    df_imu.iloc[:, :len(df_imu.columns) // 2] = df_imu.iloc[:, :len(df_imu.columns) // 2] / 1000
+
+    # save in dict
+    nexus_dict = {
+        'df_imu': df_imu,
+        'fs_imu': fs_imu,
+        'df_force': df_force,
+        'fs_force': fs_force,
+        'df_marker': df_marker,
+        'fs_marker': fs_marker
+    }
+
+    return nexus_dict
+
 def df_reshape_imu(df):
     cols = df.iloc[3].values[0].split(',')[2:]
     df = df[0].str.split(',', expand=True).iloc[5:, 2:-1]
@@ -79,6 +137,16 @@ def df_reshape_marker(df_in):
     df_out.columns=cols
     df_out.reset_index(drop=True, inplace=True)
     return df_out.apply(lambda x: pd.to_numeric(x, errors='coerce'))
+
+def df_reshape_analog(df_analog):
+    cols = df_analog.iloc[6].values[0].split(',')[2:]
+    df_analog = df_analog[0].str.split(',', expand=True).iloc[8:, 2:]
+    df_analog.columns = cols
+    df_analog.reset_index(drop=True, inplace=True)
+    return df_analog.apply(lambda x: pd.to_numeric(x, errors='coerce'))
+
+
+
 
 def get_force_imu_data(filepath, fs_imu=2000):
     """

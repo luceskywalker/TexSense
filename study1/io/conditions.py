@@ -10,6 +10,10 @@ def pi_path(participant_path):
     # get all csv files = all pi files
     return glob2.glob(participant_path + '\\*.csv')
 
+def nexus_path(participant_path):
+    # get all csv files = all pi files
+    return glob2.glob(participant_path + '*.csv')
+
 def get_conditions(participant_path):
     imu_files = imu_path(participant_path)
     imu_files.sort()

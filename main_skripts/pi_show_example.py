@@ -13,7 +13,7 @@ fs = 100
 size = 0.82**2
 path_nexus = 'D:\\Salzburg\\Study1\\P01\\P01_treadmill\\20221205_P01_'
 
-trial = 'D:\\Salzburg\\Study1\\P01\\P01_PI_df\\UB_level_9.csv'
+trial = 'D:\\Salzburg\\Study1\\P01\\P01_PI_df\\UB_up_8.csv'
 current = trial.split('\\')[-1][:-4]
 print(current)
 size, p_unit = pi.get_size_units(trial)
@@ -30,9 +30,9 @@ ic_true, to_true = segments_steps(force_df, fs)
 # separate side
 left_raw, right_raw = pi.separate_sides(df)
 # convert units to N/cm²
-if p_unit == 'PSI':
-    left_raw *= 0.6894757
-    right_raw *= 0.6894757
+# if p_unit == 'PSI':
+#     left_raw *= 0.6894757
+#     right_raw *= 0.6894757
 
 # remove offset
 left = pi.pi_remove_offset(left_raw, fs, size)

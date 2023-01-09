@@ -29,7 +29,7 @@ def events(trial, force_left, force_right, pi_events, save = True):
     # plt.tight_layout()
     fig.suptitle(current, fontsize=30, y=.92)
     if save == True:
-        if current.split('_')[1] != 'OG':
+        if current.split('_')[-2] != 'OG':
             plt.xlim(0, 750)
             plt.savefig(trial[:-4] + '-1.jpg', bbox_inches='tight', dpi = 60)
             # plt.xlim(2000, 4000)
@@ -73,7 +73,7 @@ def force_events(trial, force, ic, to, force_left, force_right, pi_events, save 
     # plt.tight_layout()
     fig.suptitle(current, fontsize=30, y=.92)
     if save == True:
-        if current.split('_')[1] != 'OG':
+        if current.split('_')[-2] != 'OG':
             plt.xlim(0, 750)
             plt.savefig(trial[:-4] + '_force-1.jpg', bbox_inches='tight') #, dpi = 60)
             #plt.xlim(2000, 4000)

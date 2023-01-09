@@ -10,7 +10,7 @@ for trial in conditions:
     #trial = 'D:\\Salzburg\\Study1\\P01\\P01_PI_df\\UB_up_8.csv'
     current = trial.split('\\')[-1][13:-4]
     print(current)
-    if current.split('_')[1] != 'OG':
+    if current.split('_')[-2] != 'OG':
         continue
 
     # load & parse data

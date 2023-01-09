@@ -19,7 +19,7 @@ for trial in conditions:
     print(current)
     size, p_unit = pi.get_size_units(trial)
 
-    if (current.split('_')[1] != 'OG') & (current.split('_')[0] == 'UB'):
+    if (current.split('_')[-2] != 'OG') & (current.split('_')[-3] == 'UB'):
         # load pi data
         df = load_pi(trial)
 
@@ -47,7 +47,7 @@ for trial in conditions:
 
         # events
         events_dict = pi.pi_step_segmentation(force_left, force_right, fs)
-        if current.split('_')[1] != 'OG':
+        if current.split('_')[-2] != 'OG':
             print(pi.find_hop(events_dict))
         # piplot.events(trial, force_left, force_right, events_dict, save=True)
         piplot.force_events(trial, -force_df["Fz"], ic_true, to_true, force_left, force_right, events_dict, save=True)

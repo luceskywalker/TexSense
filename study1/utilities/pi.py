@@ -331,3 +331,14 @@ def get_size_units(filepath):
            float(df[df[0]=='Sensel Height (cm)'].iloc[0,1].replace(',','.'))
 
     return size, p_unit
+
+def pi_ic_test(force_side, sampling_rate):
+
+    # calculate rate of force development (1st derivative of force)
+    rfd = np.diff(force_side, n=1)*sampling_rate   # unit N/s
+
+    # find where rfd > 1500 N/s based on Seiberl et al. (2018)
+    rfd_1500 = np.where(rfd > 1500)[0]
+    #rfd_1500neg = np.where(rfd < 1500)[0]
+
+    return rfd_1500[0]

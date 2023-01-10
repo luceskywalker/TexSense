@@ -5,7 +5,7 @@ from study1.io.conditions import pi_path, load_pi
 import study1.utilities.pi as pi
 import matplotlib.pyplot as plt
 
-participant_path = 'D:\\Salzburg\\Study1\\P04\\P04_PI_df'
+participant_path = 'D:\\Salzburg\\Study1\\P02\\P02_PI_df'
 conditions = pi_path(participant_path)
 conditions.sort()
 fs = 100

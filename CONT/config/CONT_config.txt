@@ -1,0 +1,38 @@
+[settings]
+data_path = example_dataset/
+
+[experiment]
+name = demo
+suffix = example
+val_subj = 8
+dropout = True
+extra_noise = True
+seed = 1
+n_epochs = 10
+
+[training_parameters]
+batch_size = 64
+min_learning_rate = 1e-3
+max_learning_rate = 4e-3
+tensor_length = 1000
+
+[loss_parameters]
+scale_x = 5
+scale_y = 3
+scale_z = 2
+
+[model_parameters]
+in_dim_pi = 9
+in_dim_imu = 24
+h1_dim = 32
+h2_dim = 64
+out_dim = 3
+kernel_dim1 = 15
+kernel_dim2 = 7
+kernel_dim3 = 51
+padding_dim1 = 7
+padding_dim2 = 3
+padding_dim3 = 25
+hidden_dim = 64
+drop_ratio = 0.1
+noise_ratio = 0.1

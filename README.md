@@ -8,8 +8,7 @@ rehabilitation contexts.
 
 The project TexSense is funded within the context of WISS 2025, der Wissenschafts- und Innovationsstrategie 2025, by the federal state of Salzburg.<br><br>
 Publications:
-- Höschler, L., Halmich, C., Schranz, C., Fritz, J., Cigoja, S., Ullrich, M., Koelewijn, AD., Schwameder, H. (2024). Continuous Estimation of 3D Knee Moment Timeseries Based on IMU and Pressure Insole Data During Running at Different Slopes and Speeds Using a CNN. *Journal of Sport and Health Science.* (submitted)
-- Höschler, L., Halmich, C., Schranz, C., Fritz, J., Koelewijn, AD., Schwameder, H. (2024). TOWARDS REAL-TIME ASSESMENT: WEARABLE-BASED ESTIMATION OF 3D KNEE KINETICS IN RUNNING AND THE INFLUENCE OF PREPROCESSING WORKFLOWS. *ISBS Proceedings Archive:* Vol. 37: Iss.2, ISBS 2024 Conference in Salzburg, 15th - 20th July, 2024. (accepted)
+- Höschler, L., Halmich, C., Schranz, C., Fritz, J., Koelewijn, AD., Schwameder, H. (2024). TOWARDS REAL-TIME ASSESMENT: WEARABLE-BASED ESTIMATION OF 3D KNEE KINETICS IN RUNNING AND THE INFLUENCE OF PREPROCESSING WORKFLOWS. *ISBS Proceedings Archive:* Vol. 37: Iss.2, ISBS 2024 Conference in Salzburg, 15th - 20th July, 2024.
 ## Data Set
 
 The repo comes with an example dataset containing a subset of 10 participants of our original data (n=19). 

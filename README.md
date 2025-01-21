@@ -2,6 +2,7 @@
 
 The project aims to predict continuous 3D knee moments during various running conditions using pressure insoles (PI) 
 and inertial measurement unit (IMU) data. This repo includes implementations of the neural network models, 
+hyperparameter optimization,
 data preprocessing utilities, and evaluation metrics for assessing model performance.
 The goal is to develop accurate models that can assist in biomechanical analysis and injury prevention in sports and 
 rehabilitation contexts.
@@ -19,11 +20,11 @@ Detailed information regarding preprocessing are stated below.
 DOI: 10.5281/zenodo.11119845
 <br>Link to example data: [example dataset](https://doi.org/10.5281/zenodo.11119845)<br>
 
-### Preprocessing Information
+### Pre-Processing Information
 #### 3D Knee Moments: 
 - 3D Inverse Dynamics during stance phases
 - flight phases filled with zero-values
-- fs = 100 Hz
+- fs = 100 Hz (downsampled from 200 Hz)
 - normalized to body mass
 - tensors with shape [1000 x 3]
 <br>
@@ -87,13 +88,27 @@ DOI: 10.5281/zenodo.11119845
 
 ### Model Training and Evaluation
 1. Train a model using the provided script or notebook files in the `main/` directory.
-2. Evaluate the trained model using the `model_statistics()` function in `model_stats.py`.
-3. Plot the training and validation loss using `plot_loss()` function in `plot.py`
+2. Select specific sensor configurations by editing the `[sensor_setup]` section in `config/CONT_config.txt` 
+3. Evaluate the trained model using the `model_statistics()` function in `model_stats.py`.
+4. Plot the training and validation loss using `plot_loss()` function in `plot.py`
+5. Plot the predictions loss using `plot_prediction()` function in `plot.py`
+
+### Hyperparameter Optimization
+1. Conduct hyperparameter optimization experiments using the `main/main_hyperopt.py` script
+2. Specify search spaces and optimization params in the script
+3. Select specific sensor configurations by editing the `[sensor_setup]` section in `config/CONT_config.txt` 
+4. Logfiles are created in the `hyperopt/log/` directory.
+
+### Predict with Pre-Trained Models
+1. Load one of the pre-trained models provided in `model/` and predict knee moments from IMU data
+2. Select specific subjects for validation by altering the `VAL_SUBJ` parameter
+3. Evaluate model performance over continuous predictions by RMSE and nRMSE using the `model_statistics()` function in `model_stats.py`.
 4. Plot the predictions loss using `plot_prediction()` function in `plot.py`
+5. Note: predictions may look "too good" because the subjects might have been included in the training set used for training the models.
+
 
 ### Run own experiments
-1. Alter the model architecture and training parameters by editing the `CONT_config.txt` in `config/`
-
+1. Alter the model architecture, sensor configuration, or training parameters by editing the `CONT_config.txt` in `config/`
 
 ## File Structure
 
@@ -104,9 +119,14 @@ projectname/
 │   ├── config/ 
 │   │   └── CONT_config.txt    # Configuration File
 │   │
+│   ├── hyperopt/ 
+│   │   └── log/               # Location where hyperopt log files are created
+│   │
 │   ├── main/
 │   │   ├── main_CONT.ipynb    # main as .ipynb
-│   │   └── main_CONT.py       # main as .py
+│   │   ├── main_CONT.py       # main as .py
+│   │   ├── main_hyperopt.py   # hyperopt main script 
+│   │   └── predict_from_pretrained_models.py  # use pretrained models to predict
 │   │
 │   ├── utils/
 │   │   ├── data.py            # dataset and dataloader
@@ -114,7 +134,13 @@ projectname/
 │   │   ├── model.py           # cnn model
 │   │   ├── plot.py            # plot functions
 │   │   ├── training.py        # train and eval routines
-│   │   ├── utils.py           # preprocessing and evaluation utils
+│   │   └── utils.py           # preprocessing and evaluation utils
+│   │
+│   ├── models/
+│   │   ├── foot.pt            # pretrained model using only foot imu
+│   │   ├── foot_shank.pt      # pretrained model using only foot and shank imu
+│   │   ├── foot_shank_pelvis.pt  # pretrained model using only foot, shank and pelvis imu
+│   │   └── foot_shank_thigh_pelvis.pt  # pretrained model using only foot, shank, thigh and pelvis imu
 │   │
 │   └── example_dataset/       # Raw dataset files
 │

@@ -4,3 +4,5 @@ matplotlib
 tqdm
 torch
 seaborn>=0.12.2
+optuna >= 3.6.1
+scikit-learn >= 1.3.1

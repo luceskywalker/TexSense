@@ -1,6 +1,35 @@
 import torch
 import warnings
 
+
+def get_sensors(cfg):
+    """
+    Gets the names and indices for the IMU sensor locations used in the current setup.
+    Args:
+            cfg (ConfigParser): Configuration object containing model parameters.
+
+    Returns:
+        list: indices of used IMU sensor locations
+        list: names of used IMU sensor locations
+    """
+    indices = []
+    names = []
+    # acc x,y,z ; gyr x,y,z
+    if cfg.getboolean('sensor_setup','foot'):
+        indices.extend([0,1,2,3,4,5])
+        names.append('foot')
+    if cfg.getboolean('sensor_setup','shank'):
+        indices.extend([6,7,8,9,10,11])
+        names.append('shank')
+    if cfg.getboolean('sensor_setup','thigh'):
+        indices.extend([12,13,14,15,16,17])
+        names.append('thigh')
+    if cfg.getboolean('sensor_setup','pelvis'):
+        indices.extend([18,19,20,21,22,23])
+        names.append('pelvis')
+    return sorted(indices), names
+
+
 def center_of_mass_3d(tensor):
     """
     Calculates COP coordinates [x,y] relative to the center of a pressure image for each frame in the 3D input tensor.

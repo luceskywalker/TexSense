@@ -58,7 +58,7 @@ SZ = cfg.getfloat('loss_parameters', 'scale_z')  # sagittal plane
 criterion = CRITERION(weights=(SX, SY, SZ))
 
 # create data loaders (participant wise split)
-train_loader, val_loader = create_dataloader(PATH_DATA, VAL_SUBJ, cfg, DATA_SET)
+train_loader, val_loader = create_dataloader(cfg, DATA_SET)
 
 # train the model
 training = TRAINING(
@@ -70,7 +70,7 @@ training = TRAINING(
     val_loader=val_loader
 )
 
-EPOCHS = cfg.getint('experiment','n_epochs')
+EPOCHS = cfg.getint('experiment', 'n_epochs')
 for epoch in tqdm(range(EPOCHS)):
     training.train(epoch=epoch, verbose=0)
     training.val(epoch=epoch, verbose=0)

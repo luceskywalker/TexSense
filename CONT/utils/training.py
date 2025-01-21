@@ -27,18 +27,19 @@ class TrainingRoutine:
         self.cfg = cfg
         self.device = device
         self.model = model.to(device)
-        self.optimizer = torch.optim.Adam(self.model.parameters(), lr=self.cfg.getfloat('training_parameters','min_learning_rate'))
+        self.optimizer = torch.optim.Adam(self.model.parameters(),
+                                          lr=self.cfg.getfloat('training_parameters', 'min_learning_rate'))
         self.criterion = criterion
         self.criterion_str = str(criterion).split("(")[0]
         self.train_loader = train_loader
         self.train_losses = []
         self.val_loader = val_loader
         self.val_losses = []
-        self.scheduler =  torch.optim.lr_scheduler.OneCycleLR(self.optimizer,
-                          max_lr = self.cfg.getfloat('training_parameters','max_learning_rate'), # Upper learning rate boundaries in the cycle for each parameter group
-                          steps_per_epoch = 5, # The number of steps per epoch to train for.
-                          epochs = self.cfg.getint('experiment','n_epochs') // 5, # The number of epochs to train for.
-                          anneal_strategy = 'linear') # Specifies the annealing strategy
+        self.scheduler = torch.optim.lr_scheduler.OneCycleLR(self.optimizer,
+                         max_lr=self.cfg.getfloat('training_parameters', 'max_learning_rate'),  # Upper learning rate boundaries in the cycle for each parameter group
+                         steps_per_epoch=5,  # The number of steps per epoch to train for.
+                         epochs=self.cfg.getint('experiment', 'n_epochs') // 5,  # The number of epochs to train for.
+                         anneal_strategy='linear')  # Specifies the annealing strategy
         if cfg.getboolean("experiment", "extra_noise"):
             self.noise_ratio = cfg.getfloat("model_parameters", "noise_ratio")
 

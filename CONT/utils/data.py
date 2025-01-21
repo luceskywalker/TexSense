@@ -2,25 +2,32 @@ import torch
 from torch.utils.data import Dataset, DataLoader
 import os
 from pathlib import Path
-from CONT.utils.utils import center_of_mass_3d, foot_segmentation
+from CONT.utils.utils import center_of_mass_3d, foot_segmentation, get_sensors
 import numpy as np
 from configparser import ConfigParser
 
 
-def create_dataloader(PATH_DATA: Path, VAL_SUBJ: list, cfg: ConfigParser, DATA_SET):
+def create_dataloader(cfg: ConfigParser, DATA_SET):
     """
     Function creating training and validation split and returning the corresponding data loaders.
 
     Args:
-        PATH_DATA (Path): Path to the data directory.
-        VAL_SUBJ (list): List of participants used for validation.
         cfg (ConfigParser): Configuration .
-        DATA_SET: Torch dataset that should be used.
+        DATA_SET: torch dataset that should be used (PiImuToMomentsDataset)
 
     Returns:
         tuple: Tuple containing train and validation data loaders.
     """
-    # Create a list with all participant IDs as integers
+    # Create list with all participant IDs as ints
+
+    PATH_DATA = Path(cfg['settings']['data_path'])
+
+    try:
+        VAL_SUBJ = [cfg.getint("experiment", "val_subj")]
+    except ValueError:
+        raw_val_subj = cfg.get("experiment", "val_subj")
+        VAL_SUBJ = [int(pid) for pid in raw_val_subj.replace("[", "").replace("]", "").split(",")]
+
     participant_ids = sorted(
         np.unique(
             [
@@ -37,7 +44,11 @@ def create_dataloader(PATH_DATA: Path, VAL_SUBJ: list, cfg: ConfigParser, DATA_S
     # Shuffle training participant IDs
     shuffled_ids = np.random.permutation(train_ids)
 
+    # get sensors and indices in config
+    sensors_index, sensors_name = get_sensors(cfg)
+
     # Print IDs for verification
+    print(f"Sensors used: {sensors_name}")
     print(f"Train IDs: {shuffled_ids}")
     print(f"Val ID: {VAL_SUBJ}")
 
@@ -47,6 +58,7 @@ def create_dataloader(PATH_DATA: Path, VAL_SUBJ: list, cfg: ConfigParser, DATA_S
             participant_ids=shuffled_ids,
             PATH_DATA=PATH_DATA,
             cfg=cfg,
+            sensors_index=sensors_index
         ),
         batch_size=cfg.getint("training_parameters", "batch_size"),
         shuffle=True,
@@ -56,6 +68,7 @@ def create_dataloader(PATH_DATA: Path, VAL_SUBJ: list, cfg: ConfigParser, DATA_S
             participant_ids=VAL_SUBJ,
             PATH_DATA=PATH_DATA,
             cfg=cfg,
+            sensors_index=sensors_index
         ),
         batch_size=cfg.getint("training_parameters", "batch_size"),
         shuffle=True,
@@ -72,6 +85,7 @@ class PiImuToMomentsDataset(Dataset):
             participant_ids: list,
             PATH_DATA: Path,
             cfg: ConfigParser,
+            sensors_index: list,
             transform=None,
     ):
         """
@@ -81,12 +95,14 @@ class PiImuToMomentsDataset(Dataset):
             participant_ids (list): List of participant indices in the dataset.
             PATH_DATA (Path): Path to the data directory.
             cfg (ConfigParser): Configuration object containing model parameters.
+            sensors_index (list): List containing the indices of sensors used.
             transform (function, optional): Transform function used for data augmentation.
         """
         self.cfg = cfg
         self.participant_ids = participant_ids
         self.path_moments = PATH_DATA
         self.path_pi = PATH_DATA
+        self.used_sensors = sensors_index
         self.transform = transform
         self.TENSOR_LENGTH = self.cfg.getint("training_parameters", "tensor_length")
 
@@ -138,8 +154,9 @@ class PiImuToMomentsDataset(Dataset):
         person_level = torch.tile(level, (self.TENSOR_LENGTH, 1))
         person_level = person_level.permute(1, 0)
 
-        # Load IMU data
+        # Load IMU data of used sensors
         tensor_imu = torch.load(os.path.join(self.path_pi, self.file_list_imu[idx]))
+        tensor_imu = tensor_imu[:, self.used_sensors]
         tensor_imu = tensor_imu.permute(1, 0)
 
         # Load moments
@@ -156,7 +173,7 @@ class PiImuToMomentsDataset(Dataset):
             tensor_pi = tensor_pi_full
 
         if tensor_imu.shape[1] != 4 * self.TENSOR_LENGTH:
-            tensor_imu_full = torch.zeros(24, self.TENSOR_LENGTH * 4)
+            tensor_imu_full = torch.zeros(len(self.used_sensors), self.TENSOR_LENGTH * 4)
             tensor_imu_full[:, : tensor_imu.size(1)] = tensor_imu
             tensor_imu = tensor_imu_full
 

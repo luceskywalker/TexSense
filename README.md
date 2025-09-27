@@ -9,7 +9,9 @@ rehabilitation contexts.
 
 The project TexSense is funded within the context of WISS 2025, der Wissenschafts- und Innovationsstrategie 2025, by the federal state of Salzburg.<br><br>
 Publications:
-- Höschler, L., Halmich, C., Schranz, C., Fritz, J., Koelewijn, AD., Schwameder, H. (2024). TOWARDS REAL-TIME ASSESMENT: WEARABLE-BASED ESTIMATION OF 3D KNEE KINETICS IN RUNNING AND THE INFLUENCE OF PREPROCESSING WORKFLOWS. *ISBS Proceedings Archive:* Vol. 37: Iss.2, ISBS 2024 Conference in Salzburg, 15th - 20th July, 2024.
+- Höschler, L., Halmich, C., Schranz, C., Fritz, J., Koelewijn, AD., Schwameder, H. (2024). TOWARDS REAL-TIME ASSESMENT: WEARABLE-BASED ESTIMATION OF 3D KNEE KINETICS IN RUNNING AND THE INFLUENCE OF PREPROCESSING WORKFLOWS. *ISBS Proceedings Archive:* Vol. 37: Iss.2, ISBS 2024 Conference in Salzburg, 15th - 20th July, 2024. https://commons.nmu.edu/isbs/vol42/iss1/72/
+- Höschler, L., Halmich, C., Schranz, C., Fritz, J., Čigoja, S., Ullrich, M., Koelewijn, AD., Schwameder, H. (2025). Wearable-based estimation of continuous 3D knee moments during running using a convolutional neural network. *Sports Biomechanics,* 1-19. https://doi.org/10.1080/14763141.2025.2481164 
+- Höschler, L., Halmich, C., Schranz, C., Koelewijn, AD., Schwameder, H. (2025). Evaluating the Influence of Sensor Configuration and Hyperparameter Optimization on Wearable-Based Knee Moment Estimation During Running. *International Journal of Computer Science in Sport, 24* (2). 80-106. https://doi.org/10.2478/ijcss-2025-0014 
 ## Data Set
 
 The repo comes with an example dataset containing a subset of 10 participants of our original data (n=19). 

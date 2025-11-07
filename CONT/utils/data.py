@@ -7,13 +7,14 @@ import numpy as np
 from configparser import ConfigParser
 
 
-def create_dataloader(cfg: ConfigParser, DATA_SET):
+def create_dataloader(cfg: ConfigParser, DATA_SET, val_only=False):
     """
     Function creating training and validation split and returning the corresponding data loaders.
 
     Args:
         cfg (ConfigParser): Configuration .
         DATA_SET: torch dataset that should be used (PiImuToMomentsDataset)
+        val_only (bool): optional for only creating Val Loader
 
     Returns:
         tuple: Tuple containing train and validation data loaders.
@@ -53,16 +54,19 @@ def create_dataloader(cfg: ConfigParser, DATA_SET):
     print(f"Val ID: {VAL_SUBJ}")
 
     # Create corresponding data loaders
-    train_loader = DataLoader(
-        DATA_SET(
-            participant_ids=shuffled_ids,
-            PATH_DATA=PATH_DATA,
-            cfg=cfg,
-            sensors_index=sensors_index
-        ),
-        batch_size=cfg.getint("training_parameters", "batch_size"),
-        shuffle=True,
-    )
+    if not val_only:
+        train_loader = DataLoader(
+            DATA_SET(
+                participant_ids=shuffled_ids,
+                PATH_DATA=PATH_DATA,
+                cfg=cfg,
+                sensors_index=sensors_index
+            ),
+            batch_size=cfg.getint("training_parameters", "batch_size"),
+            shuffle=True,
+        )
+    else:
+        train_loader = None
     val_loader = DataLoader(
         DATA_SET(
             participant_ids=VAL_SUBJ,
@@ -124,8 +128,8 @@ class PiImuToMomentsDataset(Dataset):
             ):
                 self.file_list_imu.append(file)
                 pi_file = file.replace('imu', 'pi')
-                moments_file = pi_file.replace('pi', 'moments')
                 self.file_list_pi.append(pi_file)
+                moments_file = pi_file.replace('pi', 'moments')
                 self.file_list_moments.append(moments_file)
 
     def __len__(self):
@@ -135,11 +139,14 @@ class PiImuToMomentsDataset(Dataset):
     def __getitem__(self, idx):
         """Returns a tuple (PI, moments, participant_id)."""
         # Load PI data
-        tensor_pi = torch.load(os.path.join(self.path_pi, self.file_list_pi[idx]))
-        tensor_pi = tensor_pi.reshape(-1, 31, 11)
-        cop = center_of_mass_3d(tensor_pi)
-        tensor_pi = torch.hstack([foot_segmentation(tensor_pi), cop])
-        tensor_pi = tensor_pi.permute(1, 0)
+        if self.cfg.getboolean("sensor_setup", "pi"):
+            tensor_pi = torch.load(os.path.join(self.path_pi, self.file_list_pi[idx]))
+            tensor_pi = tensor_pi.reshape(-1, 31, 11)
+            cop = center_of_mass_3d(tensor_pi)
+            tensor_pi = torch.hstack([foot_segmentation(tensor_pi), cop])
+            tensor_pi = tensor_pi.permute(1, 0)
+        else:
+            tensor_pi = torch.tensor([1,1])
 
         # Auxillary Information for Slope information
         if "_down_" in str(self.file_list_pi[idx]):
@@ -167,10 +174,13 @@ class PiImuToMomentsDataset(Dataset):
         tensor_moments = tensor_moments.permute(1, 0)
 
         # Zero-padding if the output length is not reached
-        if tensor_pi.shape[1] != self.TENSOR_LENGTH:
-            tensor_pi_full = torch.zeros(9, self.TENSOR_LENGTH)
-            tensor_pi_full[:, : tensor_pi.size(1)] = tensor_pi
-            tensor_pi = tensor_pi_full
+        if self.cfg.getboolean("sensor_setup", "pi"):
+            if tensor_pi.shape[1] != self.TENSOR_LENGTH:
+                tensor_pi_full = torch.zeros(9, self.TENSOR_LENGTH)
+                tensor_pi_full[:, : tensor_pi.size(1)] = tensor_pi
+                tensor_pi = tensor_pi_full
+            else:
+                tensor_pi = torch.tensor([1,1])
 
         if tensor_imu.shape[1] != 4 * self.TENSOR_LENGTH:
             tensor_imu_full = torch.zeros(len(self.used_sensors), self.TENSOR_LENGTH * 4)

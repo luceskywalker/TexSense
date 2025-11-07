@@ -1,5 +1,7 @@
 import torch
 import warnings
+import configparser
+import pandas as pd
 
 
 def get_sensors(cfg):
@@ -136,7 +138,10 @@ def model_statistics(cfg, model, device, data_loader):
     # Iterate through each sample in the data loader
     for idx in range(len(data_loader.dataset)):
         sample = data_loader.dataset[idx]
-        pi_data = sample["pi"].to(device)
+        if cfg.getboolean("sensor_setup", "pi"):
+            pi_data = sample["pi"].to(device)
+        else:
+            pi_data = torch.tensor([1, 1]).to(device)
         true = sample["moments"]
         imu = sample["imu"].to(device)
         aux = sample['level'].to(device)
@@ -169,3 +174,86 @@ def model_statistics(cfg, model, device, data_loader):
 
         # Compute mean RMSE and mean normalized RMSE over all samples and dimensions
         return torch.mean(rmse_tensor, 0), torch.mean(nrmse_tensor, 0)
+
+
+
+def convert_old_to_new_config(old_config, dataset):
+    new_config = configparser.ConfigParser()
+
+    # Copy unchanged sections
+    for section in old_config.sections():
+        new_config.add_section(section)
+        for key, value in old_config.items(section):
+            # Drop 'in_dim_pi'
+            if section == "model_parameters" and key == "in_dim_pi":
+                continue
+
+            # Rename conv2_dim -> x1_dim, conv3_dim -> x2_dim
+            if section == "model_parameters":
+                if key == "conv2_dim":
+                    key = "x1_dim"
+                elif key == "conv3_dim":
+                    key = "x2_dim"
+                elif key == "kernel_conv2":
+                    key = "kernel_x1"
+                elif key == "kernel_conv3":
+                    key = "kernel_x2"
+            if section == "settings":
+                if key == "data_path":
+                    value = dataset
+
+            new_config.set(section, key, value)
+
+    return new_config
+
+
+def update_state_dict_keys(state_dict):
+    new_state_dict = {}
+    for key, value in state_dict.items():
+        # Rename keys according to the new convention
+        new_key = key
+        if 'conv2' in key:
+            new_key = key.replace('conv2', 'x1')
+        elif 'conv3' in key:
+            new_key = key.replace('conv3', 'x2')
+        # Keep all other keys unchanged
+        new_state_dict[new_key] = value
+    return new_state_dict
+
+
+def dict_to_multilevel_df(metrics_dict):
+    """
+    Convert performance metrics dict (from get_model_performance)
+    into a tidy DataFrame with a 7-level MultiIndex:
+    subject, shoe, slope, speed, side, slice, dim
+    """
+    dims = ["frontal", "transverse", "sagittal"]
+    records = []
+
+    for fname, metrics in metrics_dict.items():
+        # Example: P12_BOS_level_10_left_1
+        parts = fname.split("_")
+        if len(parts) != 6:
+            raise ValueError(f"Unexpected filename format: {fname}")
+
+        subject, shoe, slope, speed, side, slice_id = parts
+        speed = int(speed) * 10  # scale up as requested
+        slice_id = int(slice_id)
+
+        for i, dim in enumerate(dims):
+            records.append({
+                "subject": subject,
+                "shoe": shoe,
+                "slope": slope,
+                "speed": speed,
+                "side": side,
+                "slice": slice_id,
+                "dim": dim,
+                "RMSE": metrics["RMSE"][i],
+                "nRMSE": metrics["nRMSE"][i],
+                "r": metrics["r"][i],
+                "ICC": metrics["ICC"][i],
+            })
+    df = pd.DataFrame.from_records(records)
+    df.set_index(["subject", "shoe", "slope", "speed", "side", "slice", "dim"], inplace=True)
+    return df
